@@ -1,0 +1,80 @@
+{
+	"extension": {
+		"name": "Test",
+		"version": "0.0.1",
+		"description": "Prototype of a test extension for Wakanda Studio",
+		"icon": "waktest.png",
+		"senders": [{
+			"location": "codeEditorToolbar",
+			"tips": "Create and Run Tests",
+			"icon": "waktest.png",
+			"menu": [{
+				"actionName": "waktest_runssjs",
+			}, {
+				"actionName": "waktest_runwaf",
+			}, {
+				"actionName": "waktest_runstudio",
+			}, {
+				"separator": {}
+			}, {
+				"actionName": "waktest_newsuitebdd"
+			}, {
+				"actionName": "waktest_newcasebddexpect"
+			}, {
+				"actionName": "waktest_newcasebddshould"
+			}, {
+				"actionName": "waktest_newcasebddasync"
+			}]
+		}],
+		"actions": [{
+			"name": "wakbot_run",
+			"title": "WakBot",
+			"trigger": [{
+				"event": "onStudioStart"
+			}]
+		}, {
+			"name": "waktest_runssjs",
+			"title": "Run as a Server-Side Test",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_runwaf",
+			"title": "Run as a Browser-Side Test",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_runstudio",
+			"title": "Run as a Studio-Side Test",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_newsuitebdd",
+			"title": "New Test Suite (BDD)",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_newcasebddexpect",
+			"title": "New Test Case (BDD/Expect)",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_newcasebddshould",
+			"title": "New Test Case (BDD/Should)",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_newcasebddasync",
+			"title": "New Test Case (BDD/Async)",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}],
+		"lifetime": "application_lifetime"
+	}
+}
