@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Studio-Side Test</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<meta charset="UTF-8">
+	<script src="lib/jquery.min.js"></script>
+</head>
+<body>
+	<div id="waktest-waf-log"></div>
+	<button id="runstudio_close" style="position: fixed; bottom: 5px; right: 5px;" onclick="studio.extension.quitDialog()" disabled="disabled">Close</button>
+	<script>
+		var args = studio.extension.storage.dialogArguments;
+		if (typeof args['waktest-path'] !== 'undefined' && typeof args['waktest-url'] !== 'undefined') {
+			window._waktest_waf_ready = function() {
+				_waktestRun();
+			};
+			window.waktest_ended = function(data) {
+				$('#runstudio_close').prop('disabled', false);
+			};
+			var libraryURL = args['waktest-url'] + '/waktest-waf-lib?path=' + args['waktest-path'] + '&widgetId=WakandaStudio';
+			var cssURL = args['waktest-url'] + '/waktest-waf-css?widgetId=WakandaStudio';
+			var waktestScript = document.createElement('script');
+			waktestScript.type = 'application/javascript';
+			waktestScript.src = libraryURL;
+			var waktestLink = document.createElement('link');
+			waktestLink.rel = 'stylesheet';
+			waktestLink.type = 'text/css';
+			waktestLink.href = cssURL;
+			document.getElementsByTagName('head')[0].appendChild(waktestScript);
+			document.getElementsByTagName('head')[0].appendChild(waktestLink);
+		}
+	</script>
+</body>
+</html>

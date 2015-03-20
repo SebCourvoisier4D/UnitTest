@@ -194,6 +194,32 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 	return true;
 };
 
+/*
+ * waktest_runstudio
+ *
+ */
+actions.waktest_runstudio = function waktest_runstudio(message) {
+	"use strict";
+	if (typeof env === 'undefined') {
+		env = getEnv();
+	}
+	if (message.event === "onStudioStart") {
+		// Automatic
+	} else {
+		// Manual
+		var currentFileName = studio.currentEditor.getEditingFile().name;
+		var currentFilePath = studio.currentEditor.getEditingFile().path;
+		var currentProject = getProjectOfFile(currentFilePath);
+		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
+		studio.extension.showModalDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL }, {
+			title: '[Studio-Side Test] ' + currentFileName,
+			dialogwidth: 800,
+			dialogheight: 500,
+			resizable: false
+		});
+	}
+	return true;
+};
 
 /*
  * wakbot_run
