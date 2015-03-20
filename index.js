@@ -41,8 +41,8 @@ var indent = function indent(snippet, offset) {
  */
 actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	var snippet = [];
-	snippet.push('//var waktest = require("waktest");');
-	snippet.push('//waktest.init();');
+	snippet.push('//var unitTest = require("waktest-module");');
+	snippet.push('//unitTest.init();');
 	snippet.push('');
 	snippet.push('describe("My implementation", function () {');
 	snippet.push('');
@@ -56,7 +56,7 @@ actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	snippet.push('');
 	snippet.push('});');
 	snippet.push('');
-	snippet.push('//waktest.run();');
+	snippet.push('//unitTest.run();');
 	studio.currentEditor.insertText(indent(snippet));
 };
 

@@ -1,12 +1,12 @@
 {
 	"extension": {
-		"name": "Test",
+		"name": "Unit Test",
 		"version": "0.0.1",
-		"description": "Prototype of a test extension for Wakanda Studio",
+		"description": "Unit Test Add-On for Wakanda Studio",
 		"icon": "waktest.png",
 		"senders": [{
 			"location": "codeEditorToolbar",
-			"tips": "Create and Run Tests",
+			"tips": "Create and Run Unit Tests",
 			"icon": "waktest.png",
 			"menu": [{
 				"actionName": "waktest_runssjs",
