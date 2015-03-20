@@ -46,7 +46,7 @@
 			}]
 		}, {
 			"name": "waktest_runstudio",
-			"title": "Run as the Studio-Side",
+			"title": "Run on the Studio-Side",
 			"targets": [{
 				"uti": "com.netscape.javascript-source"
 			}]
