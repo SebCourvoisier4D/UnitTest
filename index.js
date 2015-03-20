@@ -48,7 +48,7 @@ actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	snippet.push('');
 	snippet.push('/* In case you want to slow down the execution...');
 	snippet.push('beforeEach(function(done){');
-	snippet.push('setTimeout(done, 500);  // Delay between each test case in millisecond');
+	snippet.push('setTimeout(done, 250);  // Delay between each test case in millisecond');
 	snippet.push('});');
 	snippet.push('*/');
 	snippet.push('');
@@ -113,6 +113,87 @@ actions.waktest_newcasebddasync = function waktest_newcasebddasync(message) {
 	snippet.push('});');
 	studio.currentEditor.insertText(indent(snippet, 1));
 };
+
+var getProjects = function getProjects() {
+		var projects = [];
+		var solutionFile = studio.currentSolution.getSolutionFile();
+		var solutionXml = studio.loadText(solutionFile.path);
+		var myRe = /<project\s+path="([^"]+)"\s?\/>/gim;
+		var project;
+		while((project = myRe.exec(solutionXml)) !== null) {
+			var settingsFile = studio.File(solutionFile.parent.parent.path + project[1].replace('../', ''));
+			projects.push({
+				'projectPath': settingsFile.path,
+				'basePath': settingsFile.parent.path
+			});
+		}
+		return projects;
+}
+
+var getProjectOfFile = function getProjectOfFile(filePath) {
+		var project = null;
+		var projects = getProjects();
+		projects.forEach(function (item) {
+			if (filePath.indexOf(item.basePath) !== -1) {
+				project = item;
+			}
+		});
+		return project;
+}
+
+var getProjectAddress = function getProjectAddress(projectPath, projectBasePath) {
+	var projectXml = studio.loadText(projectPath);
+	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
+	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
+	var serverAddress = studio.getRemoteServerInfo().split(':');
+	var serverPort = /\sport="(\d+)"/i.exec(studio.loadText(settingsPath))[1];
+	return serverAddress[0] + ':' + serverAddress[1] + ':' + serverPort;
+}
+
+/*
+ * waktest_runssjs
+ *
+ */
+actions.waktest_runssjs = function waktest_runssjs(message) {
+	"use strict";
+	if (typeof env === 'undefined') {
+		env = getEnv();
+	}
+	if (message.event === "onStudioStart") {
+		// Automatic
+	} else {
+		// Manual
+		var currentFileName = studio.currentEditor.getEditingFile().name;
+		var currentFilePath = studio.currentEditor.getEditingFile().path;
+		var currentProject = getProjectOfFile(currentFilePath);
+		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
+		studio.openFile(testURL, 0, '[Server-Side Test] ' + currentFileName);
+	}
+	return true;
+};
+
+/*
+ * waktest_runwaf
+ *
+ */
+actions.waktest_runwaf = function waktest_runwaf(message) {
+	"use strict";
+	if (typeof env === 'undefined') {
+		env = getEnv();
+	}
+	if (message.event === "onStudioStart") {
+		// Automatic
+	} else {
+		// Manual
+		var currentFileName = studio.currentEditor.getEditingFile().name;
+		var currentFilePath = studio.currentEditor.getEditingFile().path;
+		var currentProject = getProjectOfFile(currentFilePath);
+		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
+		studio.openFile(testURL, 0, '[Client-Side Test] ' + currentFileName);
+	}
+	return true;
+};
+
 
 /*
  * wakbot_run
