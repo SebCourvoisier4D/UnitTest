@@ -41,9 +41,9 @@ var indent = function indent(snippet, offset) {
  */
 actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	var snippet = [];
-	snippet.push('//var unitTest = require("waktest-module");');
-	snippet.push('//unitTest.init();');
-	snippet.push('');
+	//snippet.push('//var unitTest = require("waktest-module");');
+	//snippet.push('//unitTest.init();');
+	//snippet.push('');
 	snippet.push('describe("My implementation", function () {');
 	snippet.push('');
 	snippet.push('/* In case you want to slow down the execution...');
@@ -55,8 +55,8 @@ actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	snippet.push('// Put your test cases here...');
 	snippet.push('');
 	snippet.push('});');
-	snippet.push('');
-	snippet.push('//unitTest.run();');
+	//snippet.push('');
+	//snippet.push('//unitTest.run();');
 	studio.currentEditor.insertText(indent(snippet));
 };
 
@@ -163,11 +163,16 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 		// Automatic
 	} else {
 		// Manual
-		var currentFileName = studio.currentEditor.getEditingFile().name;
-		var currentFilePath = studio.currentEditor.getEditingFile().path;
-		var currentProject = getProjectOfFile(currentFilePath);
-		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
-		studio.openFile(testURL, 0, '[Server-Side Test] ' + currentFileName);
+		if (studio.getRemoteServerInfo()  === null) {
+			studio.alert('Please Start your Solution first.');
+		} else {
+			var now = new Date();
+			var currentFileName = studio.currentEditor.getEditingFile().name;
+			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			var currentProject = getProjectOfFile(currentFilePath);
+			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
+			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Server-Side Test] ' + currentFileName);
+		}
 	}
 	return true;
 };
@@ -185,11 +190,16 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 		// Automatic
 	} else {
 		// Manual
-		var currentFileName = studio.currentEditor.getEditingFile().name;
-		var currentFilePath = studio.currentEditor.getEditingFile().path;
-		var currentProject = getProjectOfFile(currentFilePath);
-		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
-		studio.openFile(testURL, 0, '[Client-Side Test] ' + currentFileName);
+		if (studio.getRemoteServerInfo()  === null) {
+			studio.alert('Please Start your Solution first.');
+		} else {
+			var now = new Date();
+			var currentFileName = studio.currentEditor.getEditingFile().name;
+			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			var currentProject = getProjectOfFile(currentFilePath);
+			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
+			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Client-Side Test] ' + currentFileName);
+		}
 	}
 	return true;
 };
@@ -207,16 +217,20 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 		// Automatic
 	} else {
 		// Manual
-		var currentFileName = studio.currentEditor.getEditingFile().name;
-		var currentFilePath = studio.currentEditor.getEditingFile().path;
-		var currentProject = getProjectOfFile(currentFilePath);
-		var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
-		studio.extension.showModalDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL }, {
-			title: '[Studio-Side Test] ' + currentFileName,
-			dialogwidth: 800,
-			dialogheight: 500,
-			resizable: false
-		});
+		if (studio.getRemoteServerInfo()  === null) {
+			studio.alert('Please Start your Solution first.');
+		} else {
+			var currentFileName = studio.currentEditor.getEditingFile().name;
+			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			var currentProject = getProjectOfFile(currentFilePath);
+			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
+			studio.extension.showModalDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL }, {
+				title: '[Studio-Side Test] ' + currentFileName,
+				dialogwidth: 800,
+				dialogheight: 500,
+				resizable: false
+			});
+		}
 	}
 	return true;
 };
