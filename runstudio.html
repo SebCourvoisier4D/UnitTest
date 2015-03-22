@@ -27,6 +27,7 @@
 			waktestLink.rel = 'stylesheet';
 			waktestLink.type = 'text/css';
 			waktestLink.href = cssURL;
+			window.currentProjectBasePath = args['waktest-projectpath'];
 			document.getElementsByTagName('head')[0].appendChild(waktestScript);
 			document.getElementsByTagName('head')[0].appendChild(waktestLink);
 		}

@@ -46,7 +46,11 @@ actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	//snippet.push('');
 	snippet.push('describe("My implementation", function () {');
 	snippet.push('');
-	snippet.push('/* In case you want to slow down the execution...');
+	snippet.push('/* In case you want your whole test suite to fail if one test case fails:');
+	snippet.push('this.bail(true);');
+	snippet.push('*/');
+	snippet.push('');
+	snippet.push('/* In case you want to slow down the execution:');
 	snippet.push('beforeEach(function(done){');
 	snippet.push('setTimeout(done, 250);  // Delay between each test case in millisecond');
 	snippet.push('});');
@@ -163,6 +167,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 		// Automatic
 	} else {
 		// Manual
+		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
@@ -190,6 +195,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 		// Automatic
 	} else {
 		// Manual
+		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
@@ -217,6 +223,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 		// Automatic
 	} else {
 		// Manual
+		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
@@ -224,11 +231,11 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
 			var currentProject = getProjectOfFile(currentFilePath);
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
-			studio.extension.showModalDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL }, {
+			studio.extension.showModelessDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL, 'waktest-projectpath': currentProject.basePath }, {
 				title: '[Studio-Side Test] ' + currentFileName,
 				dialogwidth: 800,
-				dialogheight: 500,
-				resizable: false
+				dialogheight: 400,
+				resizable: true
 			});
 		}
 	}
