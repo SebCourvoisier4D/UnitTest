@@ -19,11 +19,19 @@
 			}, {
 				"actionName": "waktest_newsuitebdd"
 			}, {
+				"separator": {}
+			}, {
 				"actionName": "waktest_newcasebddexpect"
 			}, {
 				"actionName": "waktest_newcasebddshould"
 			}, {
 				"actionName": "waktest_newcasebddasync"
+			}, {
+				"separator": {}
+			}, {
+				"actionName": "waktest_about"
+			}, {
+				"actionName": "waktest_settings"
 			}]
 		}],
 		"actions": [{
@@ -71,6 +79,18 @@
 		}, {
 			"name": "waktest_newcasebddasync",
 			"title": "New Test Case (Async)",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_about",
+			"title": "About...",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_settings",
+			"title": "Settings...",
 			"targets": [{
 				"uti": "com.netscape.javascript-source"
 			}]
