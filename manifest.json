@@ -9,14 +9,6 @@
 			"tips": "Create and Run Unit Tests",
 			"icon": "waktest.png",
 			"menu": [{
-				"actionName": "waktest_runssjs",
-			}, {
-				"actionName": "waktest_runwaf",
-			}, {
-				"actionName": "waktest_runstudio",
-			}, {
-				"separator": {}
-			}, {
 				"actionName": "waktest_newsuitebdd"
 			}, {
 				"separator": {}
@@ -26,6 +18,14 @@
 				"actionName": "waktest_newcasebddshould"
 			}, {
 				"actionName": "waktest_newcasebddasync"
+			}, {
+				"separator": {}
+			}, {
+				"actionName": "waktest_runssjs",
+			}, {
+				"actionName": "waktest_runwaf",
+			}, {
+				"actionName": "waktest_runstudio",
 			}, {
 				"separator": {}
 			}, {
