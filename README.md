@@ -32,9 +32,9 @@ This Add-On adds a **Unit Test** icon to the toolbar of the Code Editor.
 Create a new JS file and then you'll have access to the following features:
 
 * __New Test Suite__: insert a template for a new Test Suite, which complies with the BDD style of [Mocha](http://mochajs.org/#assertions).
-* __New Test Case (Expect): insert a template for a new Test Case, which complies with the __expect()__ assertions style provided by [Chai](http://chaijs.com/guide/styles/#expect).
-* __New Test Case (Should): insert a template for a new Test Case, which complies with the __should__ assertions style provided by [Chai](http://chaijs.com/guide/styles/#should).
-* __New Test Case (Async): insert a template for a new Asynchronous Test Case.
+* __New Test Case (Expect)__: insert a template for a new Test Case, which complies with the __expect()__ assertions style provided by [Chai](http://chaijs.com/guide/styles/#expect).
+* __New Test Case (Should)__: insert a template for a new Test Case, which complies with the __should__ assertions style provided by [Chai](http://chaijs.com/guide/styles/#should).
+* __New Test Case (Async)__: insert a template for a new Asynchronous Test Case.
 * __Run on the Server-Side__: run the test suite implemented in the current script on the Server-Side (SSJS).
 * __Run on the Client-Side__: run the test suite implemented in the current script on the Client-Side (WAF). In order for this action to be performed, your Project **must** contain an "index" Page at the root of its WebFolder, and this Page **must** contain an instance of the [Unit Test Widget](https://github.com/SebCourvoisier4D/waktest-widget.git).
 * __Run on the Studio-Side__: run the test suite implemented in the current script in the context of the Studio, which gives you access to the [Wakanda Studio Extensions API](http://doc.wakanda.org/home2.en.html#/Wakanda-Studio-Extensions-API/Wakanda-Studio-Extensions-API.100-872838.en.html).
