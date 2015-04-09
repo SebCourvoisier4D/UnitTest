@@ -36,7 +36,7 @@ var indent = function indent(snippet, offset) {
 		if (/\{$/.test(line)) level++;
 	});
 	return code.join('\n') + '\n';
-}
+};
 
 /*
  * waktest_newsuitebdd
@@ -135,7 +135,7 @@ var getProjects = function getProjects() {
 			});
 		}
 		return projects;
-}
+};
 
 var getProjectOfFile = function getProjectOfFile(filePath) {
 		var project = null;
@@ -146,7 +146,7 @@ var getProjectOfFile = function getProjectOfFile(filePath) {
 			}
 		});
 		return project;
-}
+};
 
 var getProjectAddress = function getProjectAddress(projectPath, projectBasePath) {
 	var projectXml = studio.loadText(projectPath);
@@ -156,6 +156,25 @@ var getProjectAddress = function getProjectAddress(projectPath, projectBasePath)
 	var serverPort = /\sport="(\d+)"/i.exec(studio.loadText(settingsPath))[1];
 	return serverAddress[0] + ':' + serverAddress[1] + ':' + serverPort;
 }
+
+var isCurrentProjectReady = function isCurrentProjectReady(projectPath, projectBasePath) {
+	var projectXml = studio.loadText(projectPath);
+	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
+	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
+	var settingsXml = studio.loadText(settingsPath);
+	myRe = /<service\s+name="?'?unitTest"?'?/;
+	return myRe.test(settingsXml);
+};
+
+var enableService = function enableService(projectPath, projectBasePath) {
+	var projectXml = studio.loadText(projectPath);
+	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
+	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
+	var settingsXml = studio.loadText(settingsPath);
+	settingsXml = settingsXml.replace('<virtualFolder', '<service name="unitTest" modulePath="services/unitTest" enabled="true" autoStart="true"/>\n\t<virtualFolder');
+	studio.saveText(settingsXml, settingsPath);
+	return true;
+};
 
 /*
  * waktest_runssjs
@@ -178,9 +197,20 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
 			var currentProject = getProjectOfFile(currentFilePath);
+			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
+			if (currentProjectReady === false) {
+				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
+				if (isOK === true) {
+					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
+					if (setupDone === true) {
+						studio.sendCommand('ReloadSolution');
+					}
+				}
+			} else {
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
 			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Server-Side Test] ' + currentFileName);
 		}
+	}
 	}
 	return true;
 };
@@ -206,9 +236,20 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
 			var currentProject = getProjectOfFile(currentFilePath);
+			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
+			if (currentProjectReady === false) {
+				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
+				if (isOK === true) {
+					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
+					if (setupDone === true) {
+						studio.sendCommand('ReloadSolution');
+					}
+				}
+			} else {
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
 			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Client-Side Test] ' + currentFileName);
 		}
+	}
 	}
 	return true;
 };
@@ -233,6 +274,16 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
 			var currentProject = getProjectOfFile(currentFilePath);
+			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
+			if (currentProjectReady === false) {
+				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
+				if (isOK === true) {
+					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
+					if (setupDone === true) {
+						studio.sendCommand('ReloadSolution');
+					}
+				}
+			} else {
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
 			studio.extension.showModelessDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL, 'waktest-projectpath': currentProject.basePath }, {
 				title: '[Studio-Side Test] ' + currentFileName,
@@ -240,6 +291,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 				dialogheight: 400,
 				resizable: true
 			});
+			}
 		}
 	}
 	return true;
