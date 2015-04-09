@@ -26,12 +26,6 @@
 				"actionName": "waktest_runwaf",
 			}, {
 				"actionName": "waktest_runstudio",
-			}, {
-				"separator": {}
-			}, {
-				"actionName": "waktest_about"
-			}, {
-				"actionName": "waktest_settings"
 			}]
 		}],
 		"actions": [{

@@ -2,6 +2,7 @@ var actions = {};
 var env;
 
 var getEnv = function getEnv() {
+	/*
 	var envVars = {};
 	if (os.isMac || os.isLinux) {
 		var results = studio.SystemWorker.exec('/usr/bin/printenv');
@@ -20,6 +21,8 @@ var getEnv = function getEnv() {
 		}
 	}
 	return envVars;
+	*/
+	return process.env;
 };
 
 var indent = function indent(snippet, offset) {
@@ -161,7 +164,7 @@ var getProjectAddress = function getProjectAddress(projectPath, projectBasePath)
 actions.waktest_runssjs = function waktest_runssjs(message) {
 	"use strict";
 	if (typeof env === 'undefined') {
-		env = getEnv();
+		// env = getEnv();
 	}
 	if (message.event === "onStudioStart") {
 		// Automatic
@@ -189,7 +192,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 actions.waktest_runwaf = function waktest_runwaf(message) {
 	"use strict";
 	if (typeof env === 'undefined') {
-		env = getEnv();
+		// env = getEnv();
 	}
 	if (message.event === "onStudioStart") {
 		// Automatic
@@ -217,7 +220,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 actions.waktest_runstudio = function waktest_runstudio(message) {
 	"use strict";
 	if (typeof env === 'undefined') {
-		env = getEnv();
+		// env = getEnv();
 	}
 	if (message.event === "onStudioStart") {
 		// Automatic
@@ -249,7 +252,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 actions.wakbot_run = function wakbot_run(message) {
 	"use strict";
 	if (typeof env === 'undefined') {
-		env = getEnv();
+		 // env = getEnv();
 	}
 	if (message.event === "onStudioStart") {
 		// Automatic
