@@ -1,8 +1,8 @@
 {
 	"extension": {
 		"name": "Unit Test",
-		"version": "0.0.1",
-		"description": "Unit Test Add-On for Wakanda Studio",
+		"version": "0.0.2",
+		"description": "Unit Test Extension for Wakanda Studio",
 		"icon": "waktest.png",
 		"senders": [{
 			"location": "codeEditorToolbar",
