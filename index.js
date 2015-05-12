@@ -208,7 +208,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 				}
 			} else {
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
-			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Server-Side Test] ' + currentFileName);
+			studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Server-Side Test] ' + currentFileName, false);
 		}
 	}
 	}
@@ -247,7 +247,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 				}
 			} else {
 			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
-			studio.openFile(testURL + '&rnd=' + now.getTime(), 0, '[Client-Side Test] ' + currentFileName);
+			studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Client-Side Test] ' + currentFileName, false);
 		}
 	}
 	}
