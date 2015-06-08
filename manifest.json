@@ -29,10 +29,42 @@
 			}]
 		}],
 		"actions": [{
-			"name": "wakbot_run",
+			"name": "wakbot_start",
 			"title": "WakBot",
 			"trigger": [{
 				"event": "onStudioStart"
+			}]
+		}, {
+			"name": "wakbot_any",
+			"title": "WakBot any",
+			"trigger": [{
+				"event": "fromSender"
+			}, {
+				"event": "onSave"
+			}, {
+				"event": "onFileDirty"
+			}, {
+				"event": "onFilesAddedInSolution"
+			}, {
+				"event": "onFilesRemovedFromSolution"
+			}, {
+				"event": "onFolderCollapsed"
+			}, {
+				"event": "onFolderExpanded"
+			}, {
+				"event": "onSolutionCreated"
+			}, {
+				"event": "onProjectCreated"
+			}, {
+				"event": "onSolutionOpened"
+			}, {
+				"event": "onSolutionClosed"
+			}, {
+				"event": "onFileRenamed"
+			}, {
+				"event": "onFilesMovedInSolution"
+			}, {
+				"event": "onFileModified"
 			}]
 		}, {
 			"name": "waktest_runssjs",

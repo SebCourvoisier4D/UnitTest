@@ -1,31 +1,15 @@
-var actions = {};
-var env;
+var actions = {}, 
+	env, 
+	monitor;
 
-var getEnv = function getEnv() {
-	/*
-	var envVars = {};
-	if (os.isMac || os.isLinux) {
-		var results = studio.SystemWorker.exec('/usr/bin/printenv');
-	} else {
-		var results = studio.SystemWorker.exec('cmd /C set');
+function getEnv() {
+	if (typeof env === 'undefined') {
+		 env = process.env;
 	}
-	var resultLines = results.output.toString().split('\n');
-	for (var i = 0, j = resultLines.length; i < j; i++) {
-		var envVar = resultLines[i].split('=');
-		if (envVar.length === 2) {
-			envVar[0] = new String(envVar[0]).replace(/^\s+/g, '').replace(/\s+$/g, '');
-			envVar[1] = new String(envVar[1]).replace(/^\s+/g, '').replace(/\s+$/g, '');
-			if (envVar[0] != '') {
-				envVars[envVar[0]] = envVar[1];
-			}
-		}
-	}
-	return envVars;
-	*/
-	return process.env;
+	return env;
 };
 
-var indent = function indent(snippet, offset) {
+function indent(snippet, offset) {
 	if (typeof offset === 'undefined') offset = 0;
 	var level = offset,
 		code = [];
@@ -44,9 +28,6 @@ var indent = function indent(snippet, offset) {
  */
 actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	var snippet = [];
-	//snippet.push('//var unitTest = require("waktest-module");');
-	//snippet.push('//unitTest.init();');
-	//snippet.push('');
 	snippet.push('describe("My implementation", function () {');
 	snippet.push('');
 	snippet.push('/* In case you want your whole test suite to fail if one test case fails:');
@@ -62,9 +43,8 @@ actions.waktest_newsuitebdd = function waktest_newsuitebdd(message) {
 	snippet.push('// Put your test cases here...');
 	snippet.push('');
 	snippet.push('});');
-	//snippet.push('');
-	//snippet.push('//unitTest.run();');
 	studio.currentEditor.insertText(indent(snippet));
+	return true;
 };
 
 /*
@@ -81,6 +61,7 @@ actions.waktest_newcasebddexpect = function waktest_newcasebddexpect(message) {
 	snippet.push('// Cf. http://chaijs.com/api/bdd/ for the full BDD API');
 	snippet.push('});');
 	studio.currentEditor.insertText(indent(snippet, 1));
+	return true;
 };
 
 /*
@@ -97,6 +78,7 @@ actions.waktest_newcasebddshould = function waktest_newcasebddshould(message) {
 	snippet.push('// Cf. http://chaijs.com/api/bdd/ for the full BDD API');
 	snippet.push('});');
 	studio.currentEditor.insertText(indent(snippet, 1));
+	return true;
 };
 
 /*
@@ -119,36 +101,37 @@ actions.waktest_newcasebddasync = function waktest_newcasebddasync(message) {
 	snippet.push('});');
 	snippet.push('});');
 	studio.currentEditor.insertText(indent(snippet, 1));
+	return true;
 };
 
-var getProjects = function getProjects() {
-		var projects = [];
-		var solutionFile = studio.currentSolution.getSolutionFile();
-		var solutionXml = studio.loadText(solutionFile.path);
-		var myRe = /<project\s+path="([^"]+)"\s?\/>/gim;
-		var project;
-		while((project = myRe.exec(solutionXml)) !== null) {
-			var settingsFile = studio.File(solutionFile.parent.parent.path + project[1].replace('../', ''));
-			projects.push({
-				'projectPath': settingsFile.path,
-				'basePath': settingsFile.parent.path
-			});
-		}
-		return projects;
-};
-
-var getProjectOfFile = function getProjectOfFile(filePath) {
-		var project = null;
-		var projects = getProjects();
-		projects.forEach(function (item) {
-			if (filePath.indexOf(item.basePath) !== -1) {
-				project = item;
-			}
+function getProjects() {
+	var projects = [];
+	var solutionFile = studio.currentSolution.getSolutionFile();
+	var solutionXml = studio.loadText(solutionFile.path);
+	var myRe = /<project\s+path="([^"]+)"\s?\/>/gim;
+	var project;
+	while((project = myRe.exec(solutionXml)) !== null) {
+		var settingsFile = studio.File(solutionFile.parent.parent.path + project[1].replace('../', ''));
+		projects.push({
+			'projectPath': settingsFile.path,
+			'basePath': settingsFile.parent.path
 		});
-		return project;
+	}
+	return projects;
 };
 
-var getProjectAddress = function getProjectAddress(projectPath, projectBasePath) {
+function getProjectOfFile(filePath) {
+	var project = null;
+	var projects = getProjects();
+	projects.forEach(function (item) {
+		if (filePath.indexOf(item.basePath) !== -1) {
+			project = item;
+		}
+	});
+	return project;
+};
+
+function getProjectAddress(projectPath, projectBasePath) {
 	var projectXml = studio.loadText(projectPath);
 	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
 	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
@@ -157,7 +140,7 @@ var getProjectAddress = function getProjectAddress(projectPath, projectBasePath)
 	return serverAddress[0] + ':' + serverAddress[1] + ':' + serverPort;
 }
 
-var isCurrentProjectReady = function isCurrentProjectReady(projectPath, projectBasePath) {
+function isCurrentProjectReady(projectPath, projectBasePath) {
 	var projectXml = studio.loadText(projectPath);
 	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
 	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
@@ -166,7 +149,7 @@ var isCurrentProjectReady = function isCurrentProjectReady(projectPath, projectB
 	return myRe.test(settingsXml);
 };
 
-var enableService = function enableService(projectPath, projectBasePath) {
+function enableService(projectPath, projectBasePath) {
 	var projectXml = studio.loadText(projectPath);
 	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
 	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
@@ -182,9 +165,7 @@ var enableService = function enableService(projectPath, projectBasePath) {
  */
 actions.waktest_runssjs = function waktest_runssjs(message) {
 	"use strict";
-	if (typeof env === 'undefined') {
-		// env = getEnv();
-	}
+	getEnv();
 	if (message.event === "onStudioStart") {
 		// Automatic
 	} else {
@@ -221,9 +202,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
  */
 actions.waktest_runwaf = function waktest_runwaf(message) {
 	"use strict";
-	if (typeof env === 'undefined') {
-		// env = getEnv();
-	}
+	getEnv();
 	if (message.event === "onStudioStart") {
 		// Automatic
 	} else {
@@ -260,9 +239,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
  */
 actions.waktest_runstudio = function waktest_runstudio(message) {
 	"use strict";
-	if (typeof env === 'undefined') {
-		// env = getEnv();
-	}
+	getEnv();
 	if (message.event === "onStudioStart") {
 		// Automatic
 	} else {
@@ -297,37 +274,104 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 	return true;
 };
 
+function handleMessageFromMonitor (message) {
+	var messages = [];
+	if (typeof message === 'object') {
+		messages.push(message);
+	} else {
+		message.split(/\r?\n/).forEach(function (item) {
+			try {
+				messages.push(JSON.parse(item.trim()));
+			} catch (e) {
+				messages.push(item.trim());
+			}
+		});
+	}
+	messages.forEach(function (item) {
+		if (item) {
+			if (typeof item === 'string') {
+				studio.log(item);
+			} else {
+				studio.log(JSON.stringify(item));
+				if (typeof item.command !== 'undefined') {
+					switch (item.command.toString()) {
+						case 'openSolution':
+							if (typeof item.args !== 'undefined' && item.args instanceof Array && item.args.length === 1) {
+								studio.openSolution(item.args[0]);
+							}
+							break;
+					}
+				}
+			}
+		}
+	});
+}
+
+function postMessageToMonitor (message) {
+	if (message && monitor) {
+		if (typeof message === 'object') {
+			monitor.postMessage(JSON.stringify(message));
+		} else {
+			monitor.postMessage(message.toString());
+		}
+	}	
+}
+
 /*
- * wakbot_run
+ * wakbot_start
  *
  */
-actions.wakbot_run = function wakbot_run(message) {
+actions.wakbot_start = function wakbot_start(message) {
 	"use strict";
-	if (typeof env === 'undefined') {
-		 // env = getEnv();
-	}
+	getEnv();
 	if (message.event === "onStudioStart") {
-		// Automatic
+		if (typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
+			// Automatic
+			if (os.isMac || os.isLinux) {
+				monitor = new studio.SystemWorker('node ' + env.QA_MODULE_LOCATION + '/qa-scripts/studio-monitor.js', env.QA_MODULE_LOCATION);
+			} else {
+				monitor = new studio.SystemWorker('node ' + env.QA_MODULE_LOCATION + '\\qa-scripts\\studio-monitor.js', env.QA_MODULE_LOCATION);
+			}
+			monitor.onmessage = function (message) {
+				handleMessageFromMonitor(message.data.toString());
+			}
+			postMessageToMonitor('onStudioStart');
+		}
 	} else {
 		// Manual
-		var myTestFile = studio.fileSelectDialog("js");
-		env.wakbot_extension_test_path = myTestFile.path;
-		studio.extension.showModalDialog("main.html", env, {
-			title: "WakBot Test Runner",
-			dialogwidth: 800,
-			dialogheight: 500,
-			resizable: false
-		});
 	}
 	return true;
 };
 
+/*
+ * wakbot_any
+ *
+ */
+actions.wakbot_any = function wakbot_any(message) {
+	"use strict";
+	getEnv();
+	if (monitor && typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
+		postMessageToMonitor(message);
+	} else {
+		// Manual
+	}
+	return true;
+};
+
+/*
+ * handleMessage
+ *
+ */
 exports.handleMessage = function handleMessage(message) {
 	"use strict";
-	var actionName;
-	actionName = message.action;
+	var actionName = message.action;
 	if (!actions.hasOwnProperty(actionName)) {
-		return false;
+		getEnv();
+		if (monitor && typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
+			return actions['wakbot_any'](message);
+		} else {
+			return false;
+		}		
 	}
-	actions[actionName](message);
+	return actions[actionName](message);
 };
