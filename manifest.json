@@ -121,7 +121,6 @@
 				"uti": "com.netscape.javascript-source"
 			}]
 		}],
-		"lifetime": "application_lifetime",
-		"compatibleBuildVersion": 184651
+		"lifetime": "application_lifetime"
 	}
 }
