@@ -4,7 +4,27 @@ var actions = {},
 
 function getEnv() {
 	if (typeof env === 'undefined') {
-		 env = process.env;
+		if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
+			env = process.env;
+		} else {
+			env = {};
+			if (os.isMac || os.isLinux) {
+				var results = studio.SystemWorker.exec('/usr/bin/printenv');
+			} else {
+				var results = studio.SystemWorker.exec('cmd /C set');
+			}
+			var resultLines = results.output.toString().split('\n');
+			for (var i = 0, j = resultLines.length; i < j; i++) {
+				var envVar = resultLines[i].split('=');
+				if (envVar.length === 2) {
+					envVar[0] = new String(envVar[0]).replace(/^\s+/g, '').replace(/\s+$/g, '');
+					envVar[1] = new String(envVar[1]).replace(/^\s+/g, '').replace(/\s+$/g, '');
+					if (envVar[0] != '') {
+						env[envVar[0]] = envVar[1];
+					}
+				}
+			}
+		}
 	}
 	return env;
 };
@@ -166,10 +186,7 @@ function enableService(projectPath, projectBasePath) {
 actions.waktest_runssjs = function waktest_runssjs(message) {
 	"use strict";
 	getEnv();
-	if (message.event === "onStudioStart") {
-		// Automatic
-	} else {
-		// Manual
+	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
@@ -203,10 +220,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 actions.waktest_runwaf = function waktest_runwaf(message) {
 	"use strict";
 	getEnv();
-	if (message.event === "onStudioStart") {
-		// Automatic
-	} else {
-		// Manual
+	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
@@ -240,10 +254,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 actions.waktest_runstudio = function waktest_runstudio(message) {
 	"use strict";
 	getEnv();
-	if (message.event === "onStudioStart") {
-		// Automatic
-	} else {
-		// Manual
+	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo()  === null) {
 			studio.alert('Please Start your Solution first.');
@@ -274,8 +285,19 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 	return true;
 };
 
+function dotResolve(str, self) {
+	try {
+		return str.split('.').reduce(function (obj,i) {
+			return obj[i];
+		}, self);
+	} catch (ignore) {
+		return undefined;
+	}
+}
+
 function handleMessageFromMonitor (message) {
-	var messages = [];
+	var messages = [],
+		command;
 	if (typeof message === 'object') {
 		messages.push(message);
 	} else {
@@ -293,14 +315,13 @@ function handleMessageFromMonitor (message) {
 				studio.log(item);
 			} else {
 				studio.log(JSON.stringify(item));
-				if (typeof item.command !== 'undefined') {
-					switch (item.command.toString()) {
-						case 'openSolution':
-							if (typeof item.args !== 'undefined' && item.args instanceof Array && item.args.length === 1) {
-								studio.openSolution(item.args[0]);
-							}
-							break;
-					}
+				if (typeof item.command === 'string' && item.args instanceof Array) {
+					command = dotResolve(item.command, studio);
+					if (typeof command === 'function') {
+						command.apply(studio, item.args);
+					} else {
+						postMessageToMonitor({error: 'Command ' + item.command + ' is undefined'});
+					}					
 				}
 			}
 		}
@@ -326,7 +347,6 @@ actions.wakbot_start = function wakbot_start(message) {
 	getEnv();
 	if (message.event === "onStudioStart") {
 		if (typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
-			// Automatic
 			if (os.isMac || os.isLinux) {
 				monitor = new studio.SystemWorker('node ' + env.QA_MODULE_LOCATION + '/qa-scripts/studio-monitor.js', env.QA_MODULE_LOCATION);
 			} else {
@@ -337,8 +357,6 @@ actions.wakbot_start = function wakbot_start(message) {
 			}
 			postMessageToMonitor('onStudioStart');
 		}
-	} else {
-		// Manual
 	}
 	return true;
 };
@@ -352,8 +370,6 @@ actions.wakbot_any = function wakbot_any(message) {
 	getEnv();
 	if (monitor && typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
 		postMessageToMonitor(message);
-	} else {
-		// Manual
 	}
 	return true;
 };

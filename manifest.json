@@ -1,7 +1,7 @@
 {
 	"extension": {
 		"name": "Unit Test",
-		"version": "0.0.2",
+		"version": "0.0.3",
 		"description": "Unit Test Extension for Wakanda Studio",
 		"icon": "waktest.png",
 		"senders": [{
@@ -121,6 +121,7 @@
 				"uti": "com.netscape.javascript-source"
 			}]
 		}],
-		"lifetime": "application_lifetime"
+		"lifetime": "application_lifetime",
+		"compatibleBuildVersion": 184651
 	}
 }
