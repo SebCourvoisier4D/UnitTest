@@ -1,5 +1,5 @@
-var actions = {}, 
-	env, 
+var actions = {},
+	env,
 	monitor;
 
 function getEnv() {
@@ -130,7 +130,7 @@ function getProjects() {
 	var solutionXml = studio.loadText(solutionFile.path);
 	var myRe = /<project\s+path="([^"]+)"\s?\/>/gim;
 	var project;
-	while((project = myRe.exec(solutionXml)) !== null) {
+	while ((project = myRe.exec(solutionXml)) !== null) {
 		var settingsFile = studio.File(solutionFile.parent.parent.path + project[1].replace('../', ''));
 		projects.push({
 			'projectPath': settingsFile.path,
@@ -143,7 +143,7 @@ function getProjects() {
 function getProjectOfFile(filePath) {
 	var project = null;
 	var projects = getProjects();
-	projects.forEach(function (item) {
+	projects.forEach(function(item) {
 		if (filePath.indexOf(item.basePath) !== -1) {
 			project = item;
 		}
@@ -188,7 +188,7 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
-		if (studio.getRemoteServerInfo()  === null) {
+		if (studio.getRemoteServerInfo() === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
 			var now = new Date();
@@ -205,10 +205,10 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 					}
 				}
 			} else {
-			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
-			studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Server-Side Test] ' + currentFileName, false);
+				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
+				studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Server-Side Test] ' + currentFileName, false);
+			}
 		}
-	}
 	}
 	return true;
 };
@@ -222,7 +222,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
-		if (studio.getRemoteServerInfo()  === null) {
+		if (studio.getRemoteServerInfo() === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
 			var now = new Date();
@@ -239,10 +239,10 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 					}
 				}
 			} else {
-			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
-			studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Client-Side Test] ' + currentFileName, false);
+				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
+				studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Client-Side Test] ' + currentFileName, false);
+			}
 		}
-	}
 	}
 	return true;
 };
@@ -256,7 +256,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
-		if (studio.getRemoteServerInfo()  === null) {
+		if (studio.getRemoteServerInfo() === null) {
 			studio.alert('Please Start your Solution first.');
 		} else {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
@@ -272,13 +272,17 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 					}
 				}
 			} else {
-			var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
-			studio.extension.showModelessDialog("runstudio.html", { 'waktest-path': currentFilePath, 'waktest-url': testURL, 'waktest-projectpath': currentProject.basePath }, {
-				title: '[Studio-Side Test] ' + currentFileName,
-				dialogwidth: 800,
-				dialogheight: 400,
-				resizable: true
-			});
+				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
+				studio.extension.showModelessDialog("runstudio.html", {
+					'waktest-path': currentFilePath,
+					'waktest-url': testURL,
+					'waktest-projectpath': currentProject.basePath
+				}, {
+					title: '[Studio-Side Test] ' + currentFileName,
+					dialogwidth: 800,
+					dialogheight: 400,
+					resizable: true
+				});
 			}
 		}
 	}
@@ -287,7 +291,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 
 function dotResolve(str, self) {
 	try {
-		return str.split('.').reduce(function (obj,i) {
+		return str.split('.').reduce(function(obj, i) {
 			return obj[i];
 		}, self);
 	} catch (ignore) {
@@ -295,13 +299,14 @@ function dotResolve(str, self) {
 	}
 }
 
-function handleMessageFromMonitor (message) {
+function handleMessageFromMonitor(message) {
 	var messages = [],
-		command;
+		command,
+		result;
 	if (typeof message === 'object') {
 		messages.push(message);
 	} else {
-		message.split(/\r?\n/).forEach(function (item) {
+		message.split(/\r?\n/).forEach(function(item) {
 			try {
 				messages.push(JSON.parse(item.trim()));
 			} catch (e) {
@@ -309,7 +314,7 @@ function handleMessageFromMonitor (message) {
 			}
 		});
 	}
-	messages.forEach(function (item) {
+	messages.forEach(function(item) {
 		if (item) {
 			if (typeof item === 'string') {
 				studio.log(item);
@@ -318,24 +323,41 @@ function handleMessageFromMonitor (message) {
 				if (typeof item.command === 'string' && item.args instanceof Array) {
 					command = dotResolve(item.command, studio);
 					if (typeof command === 'function') {
-						command.apply(studio, item.args);
+						try {
+							result = command.apply(studio, item.args);
+							postMessageToMonitor({
+								event: 'onCommandRun',
+								command: item.command,
+								args: item.args,
+								result: result
+							});
+						} catch (e) {
+							postMessageToMonitor({
+								event: 'onError',
+								error: 'Command ' + item.command + ' failed',
+								data: e
+							});
+						}
 					} else {
-						postMessageToMonitor({error: 'Command ' + item.command + ' is undefined'});
-					}					
+						postMessageToMonitor({
+							event: 'onError',
+							error: 'Command ' + item.command + ' is undefined'
+						});
+					}
 				}
 			}
 		}
 	});
 }
 
-function postMessageToMonitor (message) {
+function postMessageToMonitor(message) {
 	if (message && monitor) {
 		if (typeof message === 'object') {
 			monitor.postMessage(JSON.stringify(message));
 		} else {
 			monitor.postMessage(message.toString());
 		}
-	}	
+	}
 }
 
 /*
@@ -352,7 +374,7 @@ actions.wakbot_start = function wakbot_start(message) {
 			} else {
 				monitor = new studio.SystemWorker('node ' + env.QA_MODULE_LOCATION + '\\qa-scripts\\studio-monitor.js', env.QA_MODULE_LOCATION);
 			}
-			monitor.onmessage = function (message) {
+			monitor.onmessage = function(message) {
 				handleMessageFromMonitor(message.data.toString());
 			}
 			postMessageToMonitor('onStudioStart');
@@ -387,7 +409,7 @@ exports.handleMessage = function handleMessage(message) {
 			return actions['wakbot_any'](message);
 		} else {
 			return false;
-		}		
+		}
 	}
 	return actions[actionName](message);
 };
