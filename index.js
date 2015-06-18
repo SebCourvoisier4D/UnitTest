@@ -152,12 +152,16 @@ function getProjectOfFile(filePath) {
 };
 
 function getProjectAddress(projectPath, projectBasePath) {
-	var projectXml = studio.loadText(projectPath);
-	var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
-	var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
-	var serverAddress = studio.getRemoteServerInfo().split(':');
-	var serverPort = /\sport="(\d+)"/i.exec(studio.loadText(settingsPath))[1];
-	return serverAddress[0] + ':' + serverAddress[1] + ':' + serverPort;
+	try {
+		var projectXml = studio.loadText(projectPath);
+		var myRe = /path="([^"]+)">[^<]+<tag\s+name="settings"/gim;
+		var settingsPath = projectBasePath + myRe.exec(projectXml)[1].replace('./', '');
+		var serverAddress = studio.getRemoteServerInfo().split(':');
+		var serverPort = /\sport="(\d+)"/i.exec(studio.loadText(settingsPath))[1];
+		return serverAddress[0] + ':' + serverAddress[1] + ':' + serverPort;
+	} catch (e) {
+		return 'http://127.0.0.1:8081';
+	}
 }
 
 function isCurrentProjectReady(projectPath, projectBasePath) {
