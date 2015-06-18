@@ -17,6 +17,10 @@
 			};
 			window.waktest_ended = function(data) {
 				$('#runstudio_close').prop('disabled', false);
+				if (typeof args['waktest-automatic'] !== 'undefined' && args['waktest-automatic'] === true) {
+					studio.sendCommand('UnitTest.wakbot_any', {report: data, event: 'waktest_ended', kind: 'studio'});
+					studio.extension.quitDialog();
+				}
 			};
 			var libraryURL = args['waktest-url'] + '/waktest-waf-lib?path=' + args['waktest-path'] + '&widgetId=WakandaStudio';
 			var cssURL = args['waktest-url'] + '/waktest-waf-css?widgetId=WakandaStudio';

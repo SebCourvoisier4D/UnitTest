@@ -38,6 +38,8 @@
 			"name": "wakbot_any",
 			"title": "WakBot any",
 			"trigger": [{
+				"event": "fromExtension"
+			}, {
 				"event": "fromSender"
 			}, {
 				"event": "onSave"

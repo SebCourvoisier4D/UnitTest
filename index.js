@@ -276,7 +276,7 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 				studio.extension.showModelessDialog("runstudio.html", {
 					'waktest-path': currentFilePath,
 					'waktest-url': testURL,
-					'waktest-projectpath': currentProject.basePath
+					'waktest-projectpath': currentProject.basePath,
 				}, {
 					title: '[Studio-Side Test] ' + currentFileName,
 					dialogwidth: 800,
@@ -316,21 +316,37 @@ function handleMessageFromMonitor(message) {
 	}
 	messages.forEach(function(item) {
 		if (item) {
-			if (typeof item === 'string') {
-				studio.log(item);
-			} else {
-				studio.log(JSON.stringify(item));
+			if (typeof item === 'object') {
 				if (typeof item.command === 'string' && item.args instanceof Array) {
-					command = dotResolve(item.command, studio);
-					if (typeof command === 'function') {
+					if (item.command === 'runTest') {
 						try {
-							result = command.apply(studio, item.args);
-							postMessageToMonitor({
-								event: 'onCommandRun',
-								command: item.command,
-								args: item.args,
-								result: result
+							var testFile = studio.File(item.args[0]);
+							var currentProject = getProjectOfFile(testFile.path);
+							var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
+							var opened = studio.extension.showModelessDialog("runstudio.html", {
+								'waktest-path': testFile.path, 
+								'waktest-url': testURL,
+								'waktest-projectpath': currentProject.basePath,
+								'waktest-automatic': true
+							}, {
+								title: '[Studio-Side Test] ' + testFile.name,
+								dialogwidth: 800,
+								dialogheight: 400,
+								resizable: true
 							});
+							if (opened === true) {
+								postMessageToMonitor({
+									event: 'onCommandRun',
+									command: item.command,
+									args: item.args,
+									result: true
+								});
+							} else {
+								postMessageToMonitor({
+									event: 'onError',
+									error: 'Command ' + item.command + ' could not be launched'
+								});
+							}
 						} catch (e) {
 							postMessageToMonitor({
 								event: 'onError',
@@ -339,10 +355,29 @@ function handleMessageFromMonitor(message) {
 							});
 						}
 					} else {
-						postMessageToMonitor({
-							event: 'onError',
-							error: 'Command ' + item.command + ' is undefined'
-						});
+						command = dotResolve(item.command, studio);
+						if (typeof command === 'function') {
+							try {
+								result = command.apply(studio, item.args);
+								postMessageToMonitor({
+									event: 'onCommandRun',
+									command: item.command,
+									args: item.args,
+									result: result
+								});
+							} catch (e) {
+								postMessageToMonitor({
+									event: 'onError',
+									error: 'Command ' + item.command + ' failed',
+									data: e
+								});
+							}
+						} else {
+							postMessageToMonitor({
+								event: 'onError',
+								error: 'Command ' + item.command + ' is undefined'
+							});
+						}
 					}
 				}
 			}
