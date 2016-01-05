@@ -243,7 +243,7 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 					}
 				}
 			} else {
-				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/?waktest-path=' + currentFilePath;
+				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/prototype/index.waPage/index.html?waktest-path=' + currentFilePath;
 				studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Client-Side Test] ' + currentFileName, false);
 			}
 		}
@@ -328,7 +328,7 @@ function handleMessageFromMonitor(message) {
 							var currentProject = getProjectOfFile(testFile.path);
 							var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
 							var opened = studio.extension.showModelessDialog("runstudio.html", {
-								'waktest-path': testFile.path, 
+								'waktest-path': testFile.path,
 								'waktest-url': testURL,
 								'waktest-projectpath': currentProject.basePath,
 								'waktest-automatic': true
