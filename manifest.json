@@ -21,11 +21,13 @@
 			}, {
 				"separator": {}
 			}, {
-				"actionName": "waktest_runssjs",
+				"actionName": "waktest_runssjs"
 			}, {
-				"actionName": "waktest_runwaf",
+				"actionName": "waktest_runwaf"
 			}, {
-				"actionName": "waktest_runstudio",
+				"actionName": "waktest_runstudio"
+			}, {
+				"actionName": "waktest_runaddonSelector"
 			}]
 		}],
 		"actions": [{
@@ -70,19 +72,31 @@
 			}]
 		}, {
 			"name": "waktest_runssjs",
-			"title": "Run on the Server-Side",
+			"title": "Run in Server",
 			"targets": [{
 				"uti": "com.netscape.javascript-source"
 			}]
 		}, {
 			"name": "waktest_runwaf",
-			"title": "Run on the Browser-Side",
+			"title": "Run in Prototyper",
 			"targets": [{
 				"uti": "com.netscape.javascript-source"
 			}]
 		}, {
 			"name": "waktest_runstudio",
-			"title": "Run on the Studio-Side",
+			"title": "Run in Studio",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_runaddonSelector",
+			"title": "Run in Extension...",
+			"targets": [{
+				"uti": "com.netscape.javascript-source"
+			}]
+		}, {
+			"name": "waktest_runaddon",
+			"title": "Run in Extension",
 			"targets": [{
 				"uti": "com.netscape.javascript-source"
 			}]

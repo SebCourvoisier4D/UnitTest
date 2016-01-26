@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Select Extension</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<meta charset="UTF-8">
+	<script src="lib/jquery.min.js"></script>
+	<style type="text/css">
+		body {
+			font-family: arial, sans-serif;
+			font-size: 12px;
+		}
+		h1 {
+			font-size: 14px;
+		}
+		ul {
+			list-style-type: none;
+		}
+		li.disabled {
+			color: #ccc;
+		}
+	</style>
+</head>
+<body>
+	<h1>Run the test on the selected extension:</h1>
+	<ul id="addon-list"></ul>
+	<button id="runstudio_close" style="position: fixed; bottom: 5px; right: 5px;" onclick="studio.extension.quitDialog()" disabled="disabled">Close</button>
+	<button id="runstudio_run" style="position: fixed; bottom: 5px; left: 45px; font-weight: bold;" onclick="runaddontest()">Run test</button>
+	<script>
+		var args = studio.extension.storage.dialogArguments;
+		var runOnce = true;
+		var checkFirst = true;
+		function runaddontest() {
+			if (runOnce === true) {
+				runOnce = false;
+				studio.sendCommand('UnitTest.waktest_runaddon', [args['waktest-path'], $('input[name=addon]:checked').val()]);
+				studio.extension.quitDialog();
+			}
+		}
+		if (typeof args['waktest-addons'] !== 'undefined' && typeof args['waktest-path'] !== 'undefined') {
+			$('#runstudio_run').prop('disabled', false);
+			args['waktest-addons'].forEach(function (addon, i) {
+				var index = studio.File(addon.path + 'index.html');
+				if (index.exists) {
+					if (checkFirst === true) {
+						checkFirst = false;
+						$('#addon-list').append('<li><input type="radio" name="addon" id="addon-' + i + '" value="' + addon.name + '" checked="checked"></input><label for="addon-' + i + '">&nbsp;' + addon.name + '</label></li>');
+					} else {
+						$('#addon-list').append('<li><input type="radio" name="addon" id="addon-' + i + '" value="' + addon.name + '"></input><label for="addon-' + i + '">&nbsp;' + addon.name + '</label></li>');
+					}
+				} else {
+					$('#addon-list').append('<li class="disabled"><input type="radio" name="addon" id="addon-' + i + '" disabled="disabled"></input><label for="addon-' + i + '">&nbsp;' + addon.name + '</label></li>');
+				}
+			});
+		} else {
+			$('#addon-list').append('<li class="disabled">Extensions not found</li>');
+		}
+	</script>
+</body>
+</html>

@@ -2,6 +2,8 @@ var actions = {},
 	env,
 	monitor;
 
+var Base64 = require('base64');
+
 function getEnv() {
 	if (typeof env === 'undefined') {
 		if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
@@ -27,7 +29,66 @@ function getEnv() {
 		}
 	}
 	return env;
-};
+}
+
+function getAddonsRootFolder(addonType) {
+    var rootAddonsFolder = '';
+    switch (addonType) {
+        case 'wakanda-extensions':
+            rootAddonsFolder = FileSystemSync('EXTENSIONS_USER');
+            break;
+        case 'wakanda-internal-extensions':
+        	// @FIXME (hack)
+            rootAddonsFolder = studio.Folder(studio.File(studio.getFileIcon()).parent.parent.parent.parent.path + 'Extensions');
+            break;
+    }
+    return rootAddonsFolder;
+}
+
+function getExtensions(filter) {
+    var extensions = [],
+        history = [],
+        globalExtensions = Folder(getAddonsRootFolder('wakanda-extensions').path).folders,
+        localExtensions = Folder(getAddonsRootFolder('wakanda-internal-extensions').path).folders;
+    globalExtensions.forEach(function (extension) {
+        extensions.push({
+            name: extension.name,
+            path: extension.path,
+            kind: 'global',
+            enabled: true
+        });
+        history.push(extension.name);
+    });
+    localExtensions.forEach(function (extension) {
+        if (history.indexOf(extension.name) === -1) {
+            extensions.push({
+                name: extension.name,
+                path: extension.path,
+                kind: 'internal',
+                enabled: true
+            });
+        }
+    });
+    extensions = extensions.sort(function (a, b) {
+    	if (a.name < b.name) {
+    		return -1;
+    	}
+    	if (a.name > b.name) {
+    		return 1;
+    	}
+    	return 0;
+    });
+    if (typeof filter === 'string') {
+    	return extensions.filter(function (item) {
+    		return (item.name.toLowerCase().indexOf(filter.toLowerCase()) !== -1);
+    	});
+    } else if (filter instanceof RegExp) {
+    	return extensions.filter(function (item) {
+    		return (filter.test(item.name) === true);
+    	});
+    }
+    return extensions;
+}
 
 function indent(snippet, offset) {
 	if (typeof offset === 'undefined') offset = 0;
@@ -40,7 +101,7 @@ function indent(snippet, offset) {
 		if (/\{$/.test(line)) level++;
 	});
 	return code.join('\n') + '\n';
-};
+}
 
 /*
  * waktest_newsuitebdd
@@ -137,6 +198,17 @@ function getProjects() {
 			'basePath': settingsFile.parent.path
 		});
 	}
+	if (projects.length === 0) {
+		var selectedProjects = studio.getSelectedProjects();
+		if (selectedProjects.length > 0) {
+			selectedProjects.forEach(function (project) {
+				projects.push({
+					'projectPath': project,
+					'basePath': studio.File(project).parent.path
+				});
+			});
+		}
+	}
 	return projects;
 };
 
@@ -184,23 +256,143 @@ function enableService(projectPath, projectBasePath) {
 };
 
 /*
- * waktest_runssjs
+ * waktest_runaddonSelector
  *
  */
-actions.waktest_runssjs = function waktest_runssjs(message) {
+actions.waktest_runaddonSelector = function waktest_runaddonSelector(message) {
 	"use strict";
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo() === null) {
-			studio.alert('Please Start your Solution first.');
+			studio.alert('Please Start the Server first.');
+			return false;
 		} else {
-			var now = new Date();
-			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
 			var currentProject = getProjectOfFile(currentFilePath);
+			if (currentProject === null) {
+				studio.alert('You must select one and only one project in your Wakanda Solution.');
+	    		return false;
+			} else {
+				studio.extension.showModelessDialog("selectaddon.html", {
+					'waktest-addons': getExtensions(),
+					'waktest-path': currentFilePath
+				}, {
+					title: '[Select Extension]',
+					dialogwidth: 800,
+					dialogheight: 400,
+					resizable: true
+				});
+			}
+		}
+	}
+	return true;
+};
+
+/*
+ * waktest_runaddon
+ *
+ */
+// studio.sendCommand('UnitTest.waktest_runaddon', ['/Users/wakandaqa/Documents/Wakanda/Untitled4/Untitled4/backend/Untitled1.js', 'wakanda-extension-web-editor']);
+
+actions.waktest_runaddon = function waktest_runaddon(message) {
+	"use strict";
+	var automatic = false, target = null;
+	if (typeof message.params !== 'undefined' && typeof message.params.length !== 'undefined') {
+		if (message.params.length === 1) {
+			target = message.params[0];
+		} else if (message.params.length === 2) {
+			target = message.params[1];
+			automatic = true;
+		}
+	}
+	if (target === null) {
+		if (automatic === false) {
+			studio.alert('No target given.');
+		}
+		return false;
+	}
+	getEnv();
+	if (message.event !== "onStudioStart") {
+		studio.sendCommand('Save');
+		if (studio.getRemoteServerInfo() === null) {
+			if (automatic === false) {
+				studio.alert('Please Start the Server first.');
+			}
+			return false;
+		} else {
+			if (automatic === false) {
+				var currentFileName = studio.currentEditor.getEditingFile().name;
+				var currentFilePath = studio.currentEditor.getEditingFile().path;
+			} else {
+				var currentFileName = studio.File(message.params[0]).name;
+				var currentFilePath = studio.File(message.params[0]).path;
+			}
+			var currentProject = getProjectOfFile(currentFilePath);
+			if (currentProject === null) {
+				if (automatic === false) {
+					studio.alert('You must select one and only one project in your Wakanda Solution.');
+				}
+        		return false;
+			} else {
+				var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
+				if (currentProjectReady === false) {
+					if (automatic === false) {
+						var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
+						if (isOK === true) {
+							var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
+							if (setupDone === true) {
+								studio.sendCommand('ReloadSolution');
+							}
+						}
+					}
+					return false;
+				} else {
+					var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
+					studio.sendExtensionWebZoneCommand(target, 'runUnitTest', [currentFilePath, testURL, currentProject.basePath, automatic]); // getExtensions('web-editor')[0].name, 'runUnitTest', [currentFilePath, testURL, currentProject.basePath, automatic]);
+				}
+			}
+		}
+	}
+	return true;
+};
+
+/*
+ * waktest_runssjs
+ *
+ */
+actions.waktest_runssjs = function waktest_runssjs(message) {
+	"use strict";
+	var automatic = false;
+	if (typeof message.params !== 'undefined' && typeof message.params.length !== 'undefined' && message.params.length === 1) {
+		automatic = true;
+	}
+	getEnv();
+	if (message.event !== "onStudioStart") {
+		studio.sendCommand('Save');
+		if (studio.getRemoteServerInfo() === null) {
+			if (automatic === false) {
+				studio.alert('Please Start the Server first.');
+			}
+			return false;
+		} else {
+			if (automatic === false) {
+			var currentFileName = studio.currentEditor.getEditingFile().name;
+			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			} else {
+				var currentFileName = studio.File(message.params[0]).name;
+				var currentFilePath = studio.File(message.params[0]).path;
+			}
+			var currentProject = getProjectOfFile(currentFilePath);
+			if (currentProject === null) {
+				if (automatic === false) {
+					studio.alert('You must select one and only one project in your Wakanda Solution.');
+				}
+        		return false;
+			} else {
 			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
 			if (currentProjectReady === false) {
+					if (automatic === false) {
 				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
 				if (isOK === true) {
 					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
@@ -208,9 +400,12 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
 						studio.sendCommand('ReloadSolution');
 					}
 				}
+					}
+					return false;
 			} else {
 				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/waktest-ssjs?path=' + currentFilePath;
-				studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Server-Side Test] ' + currentFileName, false);
+					studio.extension.openPageInTab(testURL + '&waktest-automatic=' + (automatic ? 1 : 0) + '&rnd=' + (new Date()).getTime(), '[Server Test] ' + currentFileName, false);
+				}
 			}
 		}
 	}
@@ -223,18 +418,36 @@ actions.waktest_runssjs = function waktest_runssjs(message) {
  */
 actions.waktest_runwaf = function waktest_runwaf(message) {
 	"use strict";
+	var automatic = false;
+	if (typeof message.params !== 'undefined' && typeof message.params.length !== 'undefined' && message.params.length === 1) {
+		automatic = true;
+	}
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo() === null) {
-			studio.alert('Please Start your Solution first.');
+			if (automatic === false) {
+				studio.alert('Please Start the Server first.');
+			}
+			return false;
 		} else {
-			var now = new Date();
+			if (automatic === false) {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			} else {
+				var currentFileName = studio.File(message.params[0]).name;
+				var currentFilePath = studio.File(message.params[0]).path;
+			}
 			var currentProject = getProjectOfFile(currentFilePath);
+			if (currentProject === null) {
+				if (automatic === false) {
+					studio.alert('You must select one and only one project in your Wakanda Solution.');
+				}
+        		return false;
+			} else {
 			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
 			if (currentProjectReady === false) {
+					if (automatic === false) {
 				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
 				if (isOK === true) {
 					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
@@ -242,9 +455,12 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
 						studio.sendCommand('ReloadSolution');
 					}
 				}
+					}
+					return false;
 			} else {
 				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath) + '/prototype/index.waPage/index.html?waktest-path=' + currentFilePath;
-				studio.extension.openPageInTab(testURL + '&rnd=' + now.getTime(), '[Client-Side Test] ' + currentFileName, false);
+					studio.extension.openPageInTab(testURL + '&waktest-automatic=' + (automatic ? 1 : 0) + '&rnd=' + (new Date()).getTime(), '[Prototyper Test] ' + currentFileName, false);
+				}
 			}
 		}
 	}
@@ -257,17 +473,36 @@ actions.waktest_runwaf = function waktest_runwaf(message) {
  */
 actions.waktest_runstudio = function waktest_runstudio(message) {
 	"use strict";
+	var automatic = false;
+	if (typeof message.params !== 'undefined' && typeof message.params.length !== 'undefined' && message.params.length === 1) {
+		automatic = true;
+	}
 	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo() === null) {
-			studio.alert('Please Start your Solution first.');
+			if (automatic === false) {
+				studio.alert('Please Start the Server first.');
+			}
+			return false;
 		} else {
+			if (automatic === false) {
 			var currentFileName = studio.currentEditor.getEditingFile().name;
 			var currentFilePath = studio.currentEditor.getEditingFile().path;
+			} else {
+				var currentFileName = studio.File(message.params[0]).name;
+				var currentFilePath = studio.File(message.params[0]).path;
+			}
 			var currentProject = getProjectOfFile(currentFilePath);
+			if (currentProject === null) {
+				if (automatic === false) {
+					studio.alert('You must select one and only one project in your Wakanda Solution.');
+				}
+        		return false;
+			} else {
 			var currentProjectReady = isCurrentProjectReady(currentProject.projectPath, currentProject.basePath);
 			if (currentProjectReady === false) {
+					if (automatic === false) {
 				var isOK = studio.confirm("The Unit Test Service is not enabled in your Project.\nDo you want to enable it?\n(The Solution will be reloaded)");
 				if (isOK === true) {
 					var setupDone = enableService(currentProject.projectPath, currentProject.basePath);
@@ -275,20 +510,24 @@ actions.waktest_runstudio = function waktest_runstudio(message) {
 						studio.sendCommand('ReloadSolution');
 					}
 				}
+					}
+					return false;
 			} else {
 				var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
 				studio.extension.showModelessDialog("runstudio.html", {
 					'waktest-path': currentFilePath,
 					'waktest-url': testURL,
 					'waktest-projectpath': currentProject.basePath,
+						'waktest-automatic': automatic
 				}, {
-					title: '[Studio-Side Test] ' + currentFileName,
+						title: '[Studio Test] ' + currentFileName,
 					dialogwidth: 800,
 					dialogheight: 400,
 					resizable: true
 				});
 			}
 		}
+	}
 	}
 	return true;
 };
@@ -326,6 +565,13 @@ function handleMessageFromMonitor(message) {
 						try {
 							var testFile = studio.File(item.args[0]);
 							var currentProject = getProjectOfFile(testFile.path);
+							if (currentProject === null) {
+								postMessageToMonitor({
+									event: 'onError',
+									error: 'Command ' + item.command + ' failed',
+									data: 'You must select one and only one project in your Wakanda Solution.'
+								});
+							} else {
 							var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
 							var opened = studio.extension.showModelessDialog("runstudio.html", {
 								'waktest-path': testFile.path,
@@ -350,6 +596,7 @@ function handleMessageFromMonitor(message) {
 									event: 'onError',
 									error: 'Command ' + item.command + ' could not be launched'
 								});
+							}
 							}
 						} catch (e) {
 							postMessageToMonitor({
@@ -429,6 +676,12 @@ actions.wakbot_start = function wakbot_start(message) {
 actions.wakbot_any = function wakbot_any(message) {
 	"use strict";
 	getEnv();
+	if (typeof message.params !== 'undefined' && typeof message.params.report === 'string') {
+		try {
+			message.params.report = JSON.parse(Base64.decode(message.params.report));
+		} catch (ignore) {}
+	}
+	// studio.sendCommand('wakanda-extension-mobile-console.append.' + Base64.encode(JSON.stringify(message)));
 	if (monitor && typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
 		postMessageToMonitor(message);
 	}
