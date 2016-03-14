@@ -4,6 +4,7 @@
 		"version": "0.0.3",
 		"description": "Unit Test Extension for Wakanda Studio",
 		"icon": "waktest.png",
+		"minStudioVersion": "1.1.0",
 		"senders": [{
 			"location": "codeEditorToolbar",
 			"tips": "Create and Run Unit Tests",
@@ -69,6 +70,10 @@
 				"event": "onFilesMovedInSolution"
 			}, {
 				"event": "onFileModified"
+			}, {
+				"event": "onSolutionWillCreate"
+			}, {
+				"event": "onProjectWillCreate"
 			}]
 		}, {
 			"name": "waktest_runssjs",
@@ -80,7 +85,7 @@
 			"name": "waktest_runwaf",
 			"title": "Run in Prototyper",
 			"targets": [{
-				"uti": "com.netscape.javascript-source"
+				"fileExtension": "js"
 			}]
 		}, {
 			"name": "waktest_runstudio",
@@ -92,7 +97,7 @@
 			"name": "waktest_runaddonSelector",
 			"title": "Run in Extension...",
 			"targets": [{
-				"uti": "com.netscape.javascript-source"
+				"fileExtension": "js"
 			}]
 		}, {
 			"name": "waktest_runaddon",
@@ -104,7 +109,7 @@
 			"name": "waktest_newsuitebdd",
 			"title": "New Test Suite",
 			"targets": [{
-				"uti": "com.netscape.javascript-source"
+				"fileExtension": "js"
 			}]
 		}, {
 			"name": "waktest_newcasebddexpect",
@@ -116,7 +121,7 @@
 			"name": "waktest_newcasebddshould",
 			"title": "New Test Case (Should)",
 			"targets": [{
-				"uti": "com.netscape.javascript-source"
+				"fileExtension": "js"
 			}]
 		}, {
 			"name": "waktest_newcasebddasync",
@@ -128,7 +133,7 @@
 			"name": "waktest_about",
 			"title": "About...",
 			"targets": [{
-				"uti": "com.netscape.javascript-source"
+				"fileExtension": "js"
 			}]
 		}, {
 			"name": "waktest_settings",

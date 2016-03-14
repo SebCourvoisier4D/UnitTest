@@ -293,17 +293,18 @@ actions.waktest_runaddonSelector = function waktest_runaddonSelector(message) {
  * waktest_runaddon
  *
  */
-// studio.sendCommand('UnitTest.waktest_runaddon', ['/Users/wakandaqa/Documents/Wakanda/Untitled4/Untitled4/backend/Untitled1.js', 'wakanda-extension-web-editor']);
-
 actions.waktest_runaddon = function waktest_runaddon(message) {
 	"use strict";
-	var automatic = false, target = null;
-	if (typeof message.params !== 'undefined' && typeof message.params.length !== 'undefined') {
-		if (message.params.length === 1) {
-			target = message.params[0];
-		} else if (message.params.length === 2) {
-			target = message.params[1];
-			automatic = true;
+	var automatic = true, target = null, _path = null;
+	getEnv();
+	if (typeof message.params !== 'undefined') {
+		if (typeof message.params.target !== 'undefined') {
+			target = message.params.target;
+		}
+		if (typeof message.params.path !== 'undefined') {
+			_path = message.params.path;
+		} else {
+			automatic = false;
 		}
 	}
 	if (target === null) {
@@ -312,7 +313,6 @@ actions.waktest_runaddon = function waktest_runaddon(message) {
 		}
 		return false;
 	}
-	getEnv();
 	if (message.event !== "onStudioStart") {
 		studio.sendCommand('Save');
 		if (studio.getRemoteServerInfo() === null) {
@@ -325,8 +325,8 @@ actions.waktest_runaddon = function waktest_runaddon(message) {
 				var currentFileName = studio.currentEditor.getEditingFile().name;
 				var currentFilePath = studio.currentEditor.getEditingFile().path;
 			} else {
-				var currentFileName = studio.File(message.params[0]).name;
-				var currentFilePath = studio.File(message.params[0]).path;
+				var currentFileName = studio.File(_path).name;
+				var currentFilePath = studio.File(_path).path;
 			}
 			var currentProject = getProjectOfFile(currentFilePath);
 			if (currentProject === null) {
@@ -349,7 +349,7 @@ actions.waktest_runaddon = function waktest_runaddon(message) {
 					return false;
 				} else {
 					var testURL = getProjectAddress(currentProject.projectPath, currentProject.basePath);
-					studio.sendExtensionWebZoneCommand(target, 'runUnitTest', [currentFilePath, testURL, currentProject.basePath, automatic]); // getExtensions('web-editor')[0].name, 'runUnitTest', [currentFilePath, testURL, currentProject.basePath, automatic]);
+					studio.sendExtensionWebZoneCommand(target, 'runUnitTest', [currentFilePath, testURL, currentProject.basePath, automatic]);
 				}
 			}
 		}
@@ -681,7 +681,6 @@ actions.wakbot_any = function wakbot_any(message) {
 			message.params.report = JSON.parse(Base64.decode(message.params.report));
 		} catch (ignore) {}
 	}
-	// studio.sendCommand('wakanda-extension-mobile-console.append.' + Base64.encode(JSON.stringify(message)));
 	if (monitor && typeof env.WAKANDA_ENV !== 'undefined' && typeof env.QA_MODULE_LOCATION !== 'undefined' && env.WAKANDA_ENV === 'test') {
 		postMessageToMonitor(message);
 	}
