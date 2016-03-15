@@ -33,7 +33,7 @@
 		function runaddontest() {
 			if (runOnce === true) {
 				runOnce = false;
-				studio.sendCommand('UnitTest.waktest_runaddon', [args['waktest-path'], $('input[name=addon]:checked').val()]);
+				studio.sendCommand('UnitTest.waktest_runaddon', JSON.stringify({ path: args['waktest-path'], target: $('input[name=addon]:checked').val()}));
 				studio.extension.quitDialog();
 			}
 		}

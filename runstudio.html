@@ -18,7 +18,7 @@
 			window.waktest_ended = function(data) {
 				$('#runstudio_close').prop('disabled', false);
 				if (typeof studio !== 'undefined' && typeof studio.sendCommand === 'function') {
-					studio.sendCommand('UnitTest.wakbot_any', {report: data, event: 'waktest_ended', kind: 'studio', automatic: args['waktest-automatic']});
+					studio.sendCommand('UnitTest.wakbot_any', JSON.stringify({report: data, event: 'waktest_ended', kind: 'studio', automatic: args['waktest-automatic']}));
 
 				}
 				if (typeof args['waktest-automatic'] !== 'undefined' && args['waktest-automatic'] === true) {

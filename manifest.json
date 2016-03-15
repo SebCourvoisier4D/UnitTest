@@ -4,7 +4,7 @@
 		"version": "0.0.3",
 		"description": "Unit Test Extension for Wakanda Studio",
 		"icon": "waktest.png",
-		"minStudioVersion": "1.1.0",
+		"minStudioVersion" : "1.1.0",
 		"senders": [{
 			"location": "codeEditorToolbar",
 			"tips": "Create and Run Unit Tests",
